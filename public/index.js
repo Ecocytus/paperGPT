@@ -1,7 +1,9 @@
 // Load the PDF.js library
 var pdfjsLib = window['pdfjs-dist/build/pdf'];
 pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
-const FirstTab = "ChatGPT, please confirm that you are ready to receive the paper and summarize it accordingly. When you receive the paper, please wait for further instructions before summarizing it, and do not comment on it until you are instructed to do so, for example you receive: \"Chatgpt, all pages are given.\". Please confirm that you understand these instructions by replying: \"Understood.\""
+const entryPrompt = "ChatGPT, please confirm that you are ready to receive the paper and summarize it accordingly. When you receive the paper, please wait for further instructions before summarizing it, and do not comment on it until you are instructed to do so. Please confirm that you understand these instructions by replying: \"Understood.\""
+const continuePrompt = " The paper is not over yet. Please confirm that you understand this part of the paper by replying: \"Understood.\""
+const summaryPrompt = " Please provide a short summary for the entire paper."
 
 // Handle file input change event
 document.getElementById('pdf-file').addEventListener('change', function (event) {
@@ -35,18 +37,18 @@ document.getElementById('pdf-file').addEventListener('change', function (event) 
       Promise.all(pagePromises).then(function (pages) {
         var text = pages.join('');
         var maxLength = 3900; // 500 words or 4000 tokens
-        var listOfText = [FirstTab];
+        var listOfText = [entryPrompt];
         var start = 0;
         var end = maxLength;
 
         // Split the text into an array of strings with a maximum length of 500 words or 4000 tokens
         while (start < text.length) {
           var chunk = text.substring(start, end);
-          listOfText.push(chunk);
+          listOfText.push(chunk + continuePrompt);
           start = end;
           end = end + maxLength;
         }
-        listOfText[listOfText.length - 1] += "Chatgpt, all pages are given.";
+        listOfText[listOfText.length - 1] = listOfText[listOfText.length - 1].slice(0, -continuePrompt.length) + summaryPrompt;
 
         console.log(listOfText);
 
